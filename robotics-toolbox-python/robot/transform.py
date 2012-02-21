@@ -1,18 +1,17 @@
 """
 Primitive operations for 3x3 orthonormal and 4x4 homogeneous matrices.
 
-Python implementation by: Luis Fernando Lara Tobar and Peter Corke.
-Based on original Robotics Toolbox for Matlab code by Peter Corke.
-Permission to use and copy is granted provided that acknowledgement of
-the authors is made.
-
-@author: Luis Fernando Lara Tobar and Peter Corke
+@author: Peter Corke
+@copyright: Peter Corke
 """
 
 from numpy import *
 from robot.utility import *
 from numpy.linalg import norm
-import robot.Quaternion as Q
+from Quaternion import *
+
+
+print "in transform"
 
 def rotx(theta):
     """
@@ -236,7 +235,7 @@ def eul2tr(phi,theta=None,psi=None):
 ################################## RPY angles
 
 
-def tr2rpy(m):
+def tr2rpy(m,zyx=False):
     """
     Extract RPY angles.
     Returns a vector of RPY angles corresponding to the rotational part of 
@@ -251,30 +250,49 @@ def tr2rpy(m):
     @see:  L{rpy2tr}, L{tr2eul}
     """
     try:
-        m = mat(m)
-        if ishomog(m):
-            rpy = mat(zeros((1,3)))
-            if norm(m[0,0])<finfo(float).eps and norm(m[1,0])<finfo(float).eps:
-                # singularity
-                rpy[0,0] = 0
-                rpy[0,1] = arctan2(-m[2,0], m[0,0])
-                rpy[0,2] = arctan2(-m[1,2], m[1,1])
-                return rpy
-            else:
-                rpy[0,0] = arctan2(m[1,0],m[0,0])
-                sp = sin(rpy[0,0])
-                cp = cos(rpy[0,0])
-                rpy[0,1] = arctan2(-m[2,0], cp*m[0,0] + sp*m[1,0])
-                rpy[0,2] = arctan2(sp*m[0,2] - cp*m[1,2], cp*m[1,1] - sp*m[0,1])
-                return rpy
+        if ~zyx:
             
+            m = mat(m)
+            if ishomog(m):
+                rpy = mat(zeros((1,3)))
+                if norm(m[2,2])<finfo(float).eps and norm(m[1,2])<finfo(float).eps:
+                    # singularity
+                    rpy[0,0] = 0
+                    rpy[0,1] = arctan2(m[0,2], m[2,2]) # pitch
+                    rpy[0,2] = arctan2(m[1,0], m[1,1]) # yaw is sum of roll+yaw
+                    return rpy
+                else:
+                    rpy[0,0] = arctan2(-m[1,3],m[2,2])
+                    sp = sin(rpy[0,0])
+                    cp = cos(rpy[0,0])
+                    rpy[0,1] = arctan2(m[0,2], cp*m[2,2] - sp*m[1,2])# pitch
+                    rpy[0,2] = arctan2(-m[0,1], m[0,0])# yaw
+                    return rpy
+        else:
+            m = mat(m)
+            if ishomog(m):
+                rpy = mat(zeros((1,3)))
+                if norm(m[0,0])<finfo(float).eps and norm(m[1,0])<finfo(float).eps:
+                    # singularity
+                    rpy[0,0] = 0
+                    rpy[0,1] = arctan2(-m[2,0], m[0,0])
+                    rpy[0,2] = arctan2(-m[1,2], m[1,1])
+                    return rpy
+                else:
+                    rpy[0,0] = arctan2(m[1,0],m[0,0])
+                    sp = sin(rpy[0,0])
+                    cp = cos(rpy[0,0])
+                    rpy[0,1] = arctan2(-m[2,0], cp*m[0,0] + sp*m[1,0])
+                    rpy[0,2] = arctan2(sp*m[0,2] - cp*m[1,2], cp*m[1,1] - sp*m[0,1])
+                    return rpy    
+
     except ValueError:
         rpy = []
         for i in range(0,len(m)):
             rpy.append(tr2rpy(m[i]))
         return rpy
         
-def rpy2r(roll, pitch=None,yaw=None):
+def rpy2r(roll, pitch=None,yaw=None,zyx=False,deg=False):
     """
     Rotation from RPY angles.
     
@@ -304,21 +322,45 @@ def rpy2r(roll, pitch=None,yaw=None):
         pitch = roll[:,1]
         yaw = roll[:,2]
         roll = roll[:,0]
-    if n>1:
-        R = []
-        for i in range(0,n):
-            r = rotz(roll[i,0]) * roty(pitch[i,0]) * rotx(yaw[i,0])
-            R.append(r)
-        return R
-    try:
-        r = rotz(roll[0,0]) * roty(pitch[0,0]) * rotx(yaw[0,0])
-        return r
-    except:
-        r = rotz(roll) * roty(pitch) * rotx(yaw)
-        return r
+
+    if deg:
+        #convert to degrees 
+        d2r = pi/180.0
+        roll = roll * d2r;
+        pitch = pitch * d2r;
+        yaw = yaw * d2r;
+        
+    if ~zyx:
+        # XYZ order
+        if n>1:
+            R = []
+            for i in range(0,n):
+                r = rotz(roll[i,0]) * roty(pitch[i,0]) * rotx(yaw[i,0])
+                R.append(r)
+            return R
+        try:
+            r = rotz(roll[0,0]) * roty(pitch[0,0]) * rotx(yaw[0,0])
+            return r
+        except:
+            r = rotx(roll) * roty(pitch) * rotz(yaw)
+            return r
+    else:
+        # XYZ order
+        if n>1:
+            R = []
+            for i in range(0,n):
+                r = rotz(roll[i,0]) * roty(pitch[i,0]) * rotx(yaw[i,0])
+                R.append(r)
+            return R
+        try:
+            r = rotz(roll[0,0]) * roty(pitch[0,0]) * rotx(yaw[0,0])
+            return r
+        except:
+            r = rotz(roll) * roty(pitch) * rotx(yaw)
+            return r
 
 
-def rpy2tr(roll, pitch=None, yaw=None):
+def rpy2tr(roll, pitch=None, yaw=None, zyx=False, deg=False):
     """
     Rotation from RPY angles.
     
@@ -339,7 +381,7 @@ def rpy2tr(roll, pitch=None, yaw=None):
     @see:  L{tr2rpy}, L{rpy2r}, L{tr2eul}
 
     """
-    return r2t( rpy2r(roll, pitch, yaw) )
+    return r2t( rpy2r(roll, pitch, yaw, zxy, deg) )
 
 ###################################### OA vector form
 
@@ -591,15 +633,16 @@ def trinterp(T0, T1, r):
     @see: L{quaternion}, L{ctraj}
     """
     
-    q0 = Q.quaternion(T0)
-    q1 = Q.quaternion(T1)
+    q0 = Quaternion(T0)
+    q1 = Quaternion(T1)
     p0 = transl(T0)
     p1 = transl(T1)
+
 
     qr = q0.interp(q1, r)
     pr = p0*(1-r) + r*p1
 
-    return vstack( (concatenate((qr.r(),pr),1), mat([0,0,0,1])) )
+    return vstack( (concatenate((qr.R(),pr),1), mat([0,0,0,1])) )
 
 
 def trnorm(t):

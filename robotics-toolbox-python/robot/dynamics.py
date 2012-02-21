@@ -1,12 +1,8 @@
 """
 Robot dynamics operations.
 
-Python implementation by: Luis Fernando Lara Tobar and Peter Corke.
-Based on original Robotics Toolbox for Matlab code by Peter Corke.
-Permission to use and copy is granted provided that acknowledgement of
-the authors is made.
-
-@author: Luis Fernando Lara Tobar and Peter Corke
+@author: Peter Corke
+@copyright: Peter Corke
 """
 
 from numpy import *
@@ -178,60 +174,6 @@ def gravload(robot, q, gravity=None):
     return tg
 
 
-
-def itorque(robot, q, qdd):
-    """
-    Compute the manipulator inertia torque
-
-	    tau = itorque(robot, q, qdd)
-
-    Returns the n-element inertia torque vector at the specified pose and 
-    acceleration, that is,
-
-        taui = inertia(q)*qdd
-
-    C{robot} describes the manipulator dynamics and kinematics.
-    If C{q} and C{qdd} are row vectors, the result is a row vector of joint 
-    torques.
-    If C{q} and C{qdd} are matrices, each row is interpretted as a joint state 
-    vector, and the result is a matrix each row being the corresponding joint 
-    torques.
-
-    If C{robot} contains non-zero motor inertia then this will included in the
-    result.
-
-    @see: rne, coriolis, inertia, gravload.
-    """
-
-    return rne(robot, q, zeros(shape(q)), qdd, [[0],[0],[0]])
-
-
-
-def ospace(robot, q, qd):
-    """
-    Return Operational Space dynamic matrices
-    
-        (Lambda, mu, p) = ospace(robot, q, qd)
-    @see: rne
-    @bug: not tested
-    """
-    q = mat(q)
-    qd = mat(qd)
-    M = inertia(robot, q)
-    C = coriolis(robot, q, qd)
-    g = gravload(robot, q)
-    J = jacob0(robot, q)
-    Ji = inv(J)
-    print 'Ji\n',Ji,'\n\n'
-    print 'J\n',J,'\n\n'
-    print 'M\n',M,'\n\n'
-    print 'C\n',C,'\n\n'
-    print 'g\n',g,'\n\n'
-    Lambda = Ji.T*M*Ji
-    mu = J.T*C - Lamba*H*qd
-    p = J.T*g
-    return Lambda, mu, p
-
 def rne(robot, *args, **options):
     """
     Compute inverse dynamics via recursive Newton-Euler formulation.
@@ -355,11 +297,11 @@ def _rne_dh(robot, Q, Qd, Qdd, grav, fext, debug=0):
             Tj = link.tr(q[j,0])
             Rm.append(t2r(Tj))
             if link.sigma == 0:
-                D = link.D
+                D = link.d
             else:
                 D = q[j,0]
             alpha = link.alpha
-            pstarm.append(mat([[link.A],[D*sin(alpha)],[D*cos(alpha)]]))
+            pstarm.append(mat([[link.a],[D*sin(alpha)],[D*cos(alpha)]]))
             if debug > 1:
                 print 'Rm:'
                 print Rm[j]
@@ -476,11 +418,11 @@ def _rne_mdh(robot, Q, Qd, Qdd, grav, fext, debug=0):
             Tj = link.tr(q[j,0])
             Rm.append(t2r(Tj))
             if link.sigma == 0:
-                D = link.D
+                D = link.d
             else:
                 D = q[j,0]
             alpha = link.alpha
-            Pm.append(mat([[link.A],[-D*sin(alpha)],[D*cos(alpha)]])) # (i-1) P i
+            Pm.append(mat([[link.a],[-D*sin(alpha)],[D*cos(alpha)]])) # (i-1) P i
             if debug > 1:
                 print 'Rm:'
                 print Rm[j]

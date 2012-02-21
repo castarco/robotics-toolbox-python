@@ -1,12 +1,8 @@
 """
-Robot object.
+SerialLink object.
 
-Python implementation by: Luis Fernando Lara Tobar and Peter Corke.
-Based on original Robotics Toolbox for Matlab code by Peter Corke.
-Permission to use and copy is granted provided that acknowledgement of
-the authors is made.
-
-@author: Luis Fernando Lara Tobar and Peter Corke
+@author: Peter Corke
+@copyright: Peter Corke
 """
 
 from numpy import *
@@ -14,21 +10,22 @@ from utility import *
 from transform import *
 import copy
 from Link import *
+from robot import *
 
-class Robot(object):
-    """Robot object.
+class SerialLink(object):
+    """SerialLink object.
     Instances of this class represent a robot manipulator
     within the toolbox.
     """
         
     def __init__(self, arg=None, gravity=None, base=None, tool=None, name='', comment='', manuf=''):
         """
-        Robot object constructor.  Create a robot from a sequence of Link objects.
+        SerialLink object constructor.  Create a robot from a sequence of Link objects.
         
         Several basic forms exist:
-            - Robot()        create a null robot
-            - Robot(robot)   create a clone of the robot object
-            - Robot(links)   create a robot based on the passed links
+            - SerialLink()        create a null SerialLink
+            - SerialLink(SerialLink)   create a clone of the SerialLink object
+            - SerialLink(links)   create a SerialLink based on the passed links
             
         Various options can be set using named arguments:
         
@@ -40,7 +37,7 @@ class Robot(object):
             - manuf
         """
 
-        if isinstance(arg, Robot):
+        if isinstance(arg, SerialLink):
             for k,v in arg.__dict__.items():
                 if k == "links":
                     self.__dict__[k] = copy.copy(v);           
@@ -92,22 +89,27 @@ class Robot(object):
             s += 'name: %s\n' % (self.name)
         if self.manuf:
             s += 'manufacturer: %s\n' % (self.manuf)
+        else:
+            s += 'manufacturer: '
+        
         if self.comment:
             s += 'commment: %s\n' % (self.comment)
-        
+        else:
+            s += 'commment: '
+            
         for link in self.links:
             s += str(link) + '\n';
         return s;   
 
     def __mul__(self, r2):
-        r = Robot(self);        # clone the robot
+        r = SerialLink(self);        # clone the robot
         print r
         r.links += r2.links;
         return r;
 
     def copy(self):
         """
-        Return a copy of the Robot object
+        Return a copy of the SerialLink object
         """
         return copy.copy(self);
                
@@ -138,7 +140,7 @@ class Robot(object):
         @param all: if True then also zero viscous friction
         @see: L{Link.nofriction}
         """
-        r = Robot(self);
+        r = SerialLink(self);
         r.name += "-nf";
         newlinks = [];
         for oldlink in self.links:
@@ -163,17 +165,65 @@ class Robot(object):
             print 'Link %d------------------------' % count;
             l.display()
             count += 1;
+##-----------------------------------------------------------------------------------------------
+##External Functions
+    #From dynamics
+    def accel(self, *args):
+        return accel(self, *args)
+    def coriolis(self, q, qd):
+        return coriolis(self, q, qd)
+    def inertia(self, value):
+        return inertia(self,value)
+    def cinertia(self, q):
+        return cinertia(self, q)
+    def gravload(self, q, gravity=None):
+        return gravload(self, q, gravity=None)
+    def rne(self, *args, **options):
+        return rne(self, *args, **options)
 
+    #from Jacobain
+    def jacob0(self, q):
+        return jacob0(self,q)
+    def jacobn(self, q):
+        return jacobn(self, q)
+
+    #form Kinematics
+    def fkine(self, q):
+        return fkine(self, q)
+    def iknie(self, tr, q=None, m=None):
+        return iknie(self, tr, q=None, m=None)
+    def ikine560(robot, T, configuration=''):
+        return ikine560(robot, T, configuration='')
+    
+    #From robot
+    def fdyn(self, t0, t1, torqfun, q0, qd0, varargin):
+        return fdyn(self, t0, t1, torqfun, q0, qd0, varargin)
+    def itorque(self, q,qdd):
+        return itorque(self, q, qdd)
+    def manipulability(self, q, witch = 'yoshikawa'):
+        return manipulability(self, q, witch = 'yoshikawa')
+    def ospace(self, q, qd):
+        return ospace(self, q, qd)
+
+    def plot(self, tg, varargin):
+        return plot(self, tg, varargin)
+
+
+    
+    
+    
+    
+##------------------------------------------------------------------------------------------------
     def __setattr__(self, name, value):
         """
         Set attributes of the robot object
         
-            - robot.name = string (name of this robot)
-            - robot.comment = string (user comment)
-            - robot.manuf = string (who built it)
-            - robot.tool = 4x4 homogeneous tranform
-            - robot.base = 4x4 homogeneous tranform
-            - robot.gravity = 3-vector  (gx,gy,gz)
+            - SerialLink.name = string (name of this robot)
+            - SerialLink.comment = string (user comment)
+            - SerialLink.manuf = string (who built it)
+            - SerialLink.tool = 4x4 homogeneous tranform
+            - SerialLink.base = 4x4 homogeneous tranform
+            - SerialLink.gravity = 3-vector  (gx,gy,gz)
         """
         
         if name in ["manuf", "name", "comment"]:

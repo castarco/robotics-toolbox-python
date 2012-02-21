@@ -1,42 +1,43 @@
-'''
-PUMA560AKB Load kinematic and dynamic data for a Puma 560 manipulator
+#PUMA560AKB Load kinematic and dynamic data for a Puma 560 manipulator
+#
+#	PUMA560AKB
+#
+# Defines the object 'p560m' in current workspace which describes the 
+# kinematic and dynamic characterstics of a Unimation Puma 560 manipulator 
+# modified DH conventions and using the data and conventions of:
+#
+#	Armstrong, Khatib and Burdick 1986.
+#	"The Explicit Dynamic Model and Inertial Parameters of the Puma 560 Arm"
+#
+# Also define the vector qz which corresponds to the zero joint
+# angle configuration, qr which is the vertical 'READY' configuration,
+# and qstretch in which the arm is stretched out in the X direction.
+#
+# See also: ROBOT, PUMA560, STANFORD, TWOLINK.
 
-	from robot.puma560akb import *
-
-Defines the object 'p560m' in current workspace which describes the 
-kinematic and dynamic characterstics of a Unimation Puma 560 manipulator 
-modified DH conventions and using the data and conventions of:
-
-	Armstrong, Khatib and Burdick 1986.
-	"The Explicit Dynamic Model and Inertial Parameters of the Puma 560 Arm"
-
-Also define the vector qz which corresponds to the zero joint
-angle configuration, qr which is the vertical 'READY' configuration,
-and qstretch in which the arm is stretched out in the X direction.
-
-@see: robot, puma560, stanford, twolink
-
-Python implementation by: Luis Fernando Lara Tobar and Peter Corke.
-Based on original Robotics Toolbox for Matlab code by Peter Corke.
-Permission to use and copy is granted provided that acknowledgement of
-the authors is made.
-
-@author: Luis Fernando Lara Tobar and Peter Corke
-'''
+# Copyright (C) 1993-2002, by Peter I. Corke
+# CHANGES:
+# 12/01	convert to object format
+# $Log: puma560akb.m,v $
+# Revision 1.3  2002/04/01 11:47:15  pic
+# General cleanup of code: help comments, see also, copyright, remnant dh/dyn
+# references, clarification of functions.
+#
+# $Revision: 1.3 $
 
 from numpy import *
 from Link import *
-from Robot import *
+from SerialLink import *
 
 L = []
 
 
-L.append(Link(alpha=0,     A=0,       theta=0, D=0,       sigma=0, convention=2))
-L.append(Link(alpha=-pi/2, A=0,       theta=0, D=0.2435,  sigma=0, convention=2))
-L.append(Link(alpha=0,     A=0.4318,  theta=0, D=-0.0934, sigma=0, convention=2))
-L.append(Link(alpha=pi/2,  A=-0.0203, theta=0, D=.4331,   sigma=0, convention=2))
-L.append(Link(alpha=-pi/2, A=0,       theta=0, D=0,       sigma=0, convention=2))
-L.append(Link(alpha=pi/2,  A=0,       theta=0, D=0,       sigma=0, convention=2))
+L.append(Link(alpha=0,     a=0,       theta=0, d=0,       sigma=0, convention=2))
+L.append(Link(alpha=-pi/2, a=0,       theta=0, d=0.2435,  sigma=0, convention=2))
+L.append(Link(alpha=0,     a=0.4318,  theta=0, d=-0.0934, sigma=0, convention=2))
+L.append(Link(alpha=pi/2,  a=-0.0203, theta=0, d=.4331,   sigma=0, convention=2))
+L.append(Link(alpha=-pi/2, a=0,       theta=0, d=0,       sigma=0, convention=2))
+L.append(Link(alpha=pi/2,  a=0,       theta=0, d=0,       sigma=0, convention=2))
 
 L[0].m = 0;
 L[1].m = 17.4;
@@ -88,4 +89,4 @@ qz = [0,0,0,0,0,0]; # zero angles, L shaped pose
 qr = [0,-pi/2,pi/2,0,0,0]; # ready pose, arm up
 qstretch = [0,0,pi/2,0,0,0]; # horizontal along x-axis
 
-p560m = Robot(L, name='Puma560-AKB', manuf='Unimation', comment='AK&B')
+p560m = SerialLink(L, name='Puma560-AKB', manuf='Unimation', comment='AK&B')

@@ -1,12 +1,8 @@
 """
 Link object.
 
-Python implementation by: Luis Fernando Lara Tobar and Peter Corke.
-Based on original Robotics Toolbox for Matlab code by Peter Corke.
-Permission to use and copy is granted provided that acknowledgement of
-the authors is made.
-
-@author: Luis Fernando Lara Tobar and Peter Corke
+@author: Peter Corke
+@copyright: Peter Corke
 """
 
 from numpy import *
@@ -53,14 +49,14 @@ class Link:
     LINK_DH = 1
     LINK_MDH = 2
 
-    def __init__(self, alpha=0, A=0, theta=0, D=0, sigma=0, convention=LINK_DH):
+    def __init__(self, theta=0, d=0, a=0, alpha=0, sigma=0, convention=LINK_DH):
         """
-        L = LINK([alpha A theta D])
-        L =LINK([alpha A theta D sigma])
-        L =LINK([alpha A theta D sigma offset])
-        L =LINK([alpha A theta D], CONVENTION)
-        L =LINK([alpha A theta D sigma], CONVENTION)
-        L =LINK([alpha A theta D sigma offset], CONVENTION)
+        L = LINK([theta d a alpha])
+        L = LINK([theta d a alpha sigma])
+        L = LINK([theta d a alpha sigma offset])
+        L = LINK([theta d a alpha], CONVENTION)
+        L = LINK([theta d a alpha sigma], CONVENTION)
+        L = LINK([theta d a alpha sigma offset], CONVENTION)
 
         If sigma or offset are not provided they default to zero.  Offset is a
         constant amount added to the joint angle variable before forward kinematics
@@ -71,10 +67,10 @@ class Link:
         or 'modified' for modified D&H parameters.  If not specified the default
         'standard'.
         """
-        self.alpha = alpha
-        self.A = A
         self.theta = theta
-        self.D = D
+        self.d = d
+        self.a = a
+        self.alpha = alpha
         self.sigma = sigma
         self.convention = convention
 
@@ -103,15 +99,15 @@ class Link:
         else:
             jtype = 'P'
 
-        if self.D == None:
-            return "alpha=%f, A=%f, theta=%f jtype: (%c) conv: (%s)" % (self.alpha,
-                 self.A, self.theta, jtype, conv)
+        if self.d == None:
+            return "theta=%f, a=%f, alpha=%f jtype: (%c) conv: (%s)" % (self.theta,
+                 self.a, self.alpha, jtype, conv)
         elif self.theta == None:
-            return "alpha=%f, A=%f, D=%f jtype: (%c) conv: (%s)" % (self.alpha,
-                 self.A, self.D, jtype, conv)
+            return "d=%f, a=%f, alpha=%f, jtype: (%c) conv: (%s)" % (self.d,
+                 self.a, self.alpha, jtype, conv)
         else:
-            return "alpha=%f, A=%f, theta=%f, D=%f jtype: (%c) conv: (%s)" % (self.alpha,
-                 self.A, self.theta, self.D, jtype, conv)
+            return "theta=%f, d=%f, a=%f, alpha=%f jtype: (%c) conv: (%s)" % (self.theta, 
+                 self.d, self.a, self.alpha, jtype, conv)
 
     # invoked at print
     def __str__(self):
@@ -125,15 +121,15 @@ class Link:
         else:
             jtype = 'P'
 
-        if self.D == None:
-            return "alpha = %f\tA = %f\ttheta = %f\t--\tjtype: %c\tconv: (%s)" % (
-                self.alpha, self.A, self.theta, jtype, conv)
+        if self.d == None:
+            return "theta = %f\ta = %f\talpha = %f\t--\tjtype: %c\tconv: (%s)" % (
+                self.theta,  self.a, self.alpha, jtype, conv)
         elif self.theta == None:
-            return "alpha = %f\tA = %f\t--\tD = %f\tjtype: %c\tconv: (%s)" % (
-                self.alpha, self.A, self.D, jtype, conv)
+            return "d = %f\ta = %f\talpha = %f\t--\tjtype: %c\tconv: (%s)" % (
+                self.d, self.a, self.alpha, jtype, conv)
         else:
-            return "alpha = %f\tA = %f\ttheta = %f\tD=%f\tjtype: %c\tconv: (%s)" % (
-                self.alpha, self.A, self.theta, self.D, jtype, conv)
+            return "theta = %f\td=%f\ta = %f\talpha = %f\tjtype: %c\tconv: (%s)" % (
+                self.theta, self.d, self.a, self.alpha, jtype, conv)
 
 
     def display(self):
@@ -207,16 +203,15 @@ class Link:
 
 # methods to set kinematic or dynamic parameters
 
-    fields = ["alpha", "A", "theta", "D", "sigma", "offset", "m", "Jm", "G", "B", "convention"];
+    fields = ["theta", "d", "a", "alpha", "sigma", "offset", "m", "Jm", "G", "B", "convention"];
     
     def __setattr__(self, name, value):
         """
         Set attributes of the Link object
-        
-            - alpha; scalar
-            - A; scalar
             - theta; scalar
-            - D; scalar
+            - d; scalar
+            - a; scalar
+            - alpha; scalar
             - sigma; scalar
             - offset; scalar
             - m; scalar
@@ -325,8 +320,8 @@ class Link:
         @return: Link transform M{A(q)}
         """
         
-        an = self.A
-        dn = self.D
+        an = self.a
+        dn = self.d
         theta = self.theta
 
         if self.sigma == 0:
