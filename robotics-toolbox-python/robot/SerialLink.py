@@ -11,6 +11,7 @@ from transform import *
 import copy
 from Link import *
 from robot import *
+from plot import * 
 
 class SerialLink(object):
     """SerialLink object.
@@ -207,10 +208,6 @@ class SerialLink(object):
 
     def plot(self, tg, varargin):
         return plot(self, tg, varargin)
-
-
-    
-    
     
     
 ##------------------------------------------------------------------------------------------------
